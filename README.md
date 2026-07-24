@@ -20,11 +20,9 @@
 6. [Code structure (`Forensic-MAC.sh`)](#-code-structure-forensic-macsh)
 7. [Color palette](#-color-palette)
 8. [`RESULTS/` folder](#-results-folder)
-9. [Output and evidence (future expansion)](#-output-and-evidence-future-expansion)
-10. [Terminal compatibility](#-terminal-compatibility)
-11. [Troubleshooting & FAQ](#-troubleshooting--faq)
-12. [Project status, roadmap, and future backlog](#-project-status-roadmap-and-future-backlog)
-13. [How to extend the script](#-how-to-extend-the-script)
+9. [Terminal compatibility](#-terminal-compatibility)
+10. [Troubleshooting & FAQ](#-troubleshooting--faq)
+11. [How to extend the script](#-how-to-extend-the-script)
 
 ---
 
@@ -88,7 +86,7 @@ cd "/path/to/project/Forensic-MAC"
 sudo bash ./Forensic-MAC.sh
 ```
 
-**Optional (**v1.31+**) — CSV history samples from the session copies:**
+**Optional — CSV history samples from the session copies:**
 
 ```bash
 export FORENSIC_BROWSER_HISTORY_EXPORT_TABLES=1
@@ -143,7 +141,7 @@ Coverage aligned with the originally defined table; **only native macOS binaries
 | Disks and volumes (listing) | ✅ `diskutil list`, `diskutil apfs list`, `mount` — see prefix `evidence/disk_*`. |
 | Disk / volume acquisition (imaging) | ❌ **Not** included: no `hdiutil`, `SPStorageDataType`, nor full `/Users/` copy with `rsync` (`mirror_Users`). Only the listing commands above are collected, not a disk image. |
 | Launch* Persistence | ✅ `rsync` of `LaunchDaemons` / `LaunchAgents` (system and Library) + **`ls -la`** on `/Library/…` and per user in `~/Library/LaunchAgents` + **`osascript` login items** (complete mode; see next section). |
-| **TCC** (`TCC.db` SQLite in system and accounts) | ✅ **Complete mode only** → **`evidence/TCC/`** (**v1.29+**): copies with `cp -p` from typical macOS paths, **`documentation/`** subfolder (`README_PROCEDURE.txt`, `sqlite3_version.txt`, `copy_log.txt`), **`sqlite_metadata/`** with `.schema`, `integrity_check`, and `page_count` via **`sqlite3` on the copies** (not on the live source beyond the `cp`). SIP or permissions may block sources; see detail in the [TCC section](#-tcc-sqlite-databases-and-chain-of-evidence). |
+| **TCC** (`TCC.db` SQLite in system and accounts) | ✅ **Complete mode only** → **`evidence/TCC/`**: copies with `cp -p` from typical macOS paths, **`documentation/`** subfolder (`README_PROCEDURE.txt`, `sqlite3_version.txt`, `copy_log.txt`), **`sqlite_metadata/`** with `.schema`, `integrity_check`, and `page_count` via **`sqlite3` on the copies** (not on the live source beyond the `cp`). SIP or permissions may block sources; see detail in the [TCC section](#-tcc-sqlite-databases-and-chain-of-evidence). |
 | **Extensions / kext / PluginKit** | ✅ **Complete mode only** → **v1.30+** native addition alongside **`systemextensionsctl list`**: `system_profiler SPExtensionsDataType`, `kextstat`, `pluginkit -m Av`, `ls -la` of `/Library/Extensions`, `/Library/SystemExtensions`, `/System/Library/Extensions`, `kmutil showlists`, `kmutil showloaded` (see prefix `evidence/security_`). |
 | **Browser history** | ✅ **`evidence/browser_history/`**: `cp -p` copies (**v1.30+**) and PRAGMA metadata; more Chromium-like browsers (**Opera**, **Opera GX**, **Yandex**, **Chromium**) **v1.31+**. **Optional** (`FORENSIC_BROWSER_HISTORY_EXPORT_TABLES=1` + **`sudo -E`**): CSV samples (`export_sql/`). Detail in [browser history](#-browser-history-sqlite-on-disk). |
 | `/tmp`, `/var/tmp` | ✅ |
@@ -294,16 +292,6 @@ Modes that generate a session (internal label suffix):
 
 ---
 
-## 📁 Output and evidence (future expansion)
-
-On top of what's already implemented, it's recommended to add:
-
-1. **Command logging** in JSON or an audited log.
-2. **Optional integration** with osxpmem or other **non-native** tools, after explicit confirmation.
-3. **Dry-run** mode or exclusions for the persistence/temp `rsync` on very large machines.
-
----
-
 ## 🖥️ Terminal compatibility
 
 - Borders use Unicode: **╔ ═ ║ ╠ ╣ ╚ ╝**. If you see garbled symbols, check **UTF-8** encoding in the terminal and font.
@@ -356,31 +344,12 @@ An empty diff means no evidence file changed after the session closed.
 
 ---
 
-## 🧪 Project status, roadmap, and future backlog
-
-**Today (v1.34-Tahoe):** UI optimized for **macOS Tahoe (v26)** with architecture detection (Apple Silicon/Intel); **single menu** **[1]/[2]/[Q]**; only **[1]** runs the **complete native collection** (without the RAM block). **[2]** shows a "FUTURE MODE" stub. Full English translation of every message, comment, function, and variable name; corrected box alignment (all ad-hoc boxes now share a consistent interior width and left-aligned text); fixed an unbound-variable bug in the session metadata function; session-name and file-count rows now compute their padding dynamically (with truncation for very long hostnames) instead of relying on a fixed constant. Folder/file naming fully translated: `RESULTS/` (was `RESULTADOS/`), `evidence/` (was `evidencias/`), `browser_history/` (was `historiales_apps/`), `persistence/` (was `persistencia/`), `security_*` (was `seguridad_*`), `system_*` (was `sistema_*`), `disk_*` (was `disco_*`), `users_*` (was `usuarios_*`), `processes_*` (was `procesos_*`), `network_*` (was `red_*`), `context_*` (was `contexto_*`), `00_METADATA.txt`, `01_INTEGRITY_CHECK.txt`, `README_PROCEDURE.txt`, `copy_log.txt`, `sqlite_metadata/`.
-
-**Roadmap and backlog (optional):** future work you can pick up whenever you want. **Not** a list of defects or incomplete debt — everything planned through **v1.31** is **closed** (**v1.29** — **TCC** `evidence/TCC/`; **v1.30** — security/extensions and **browser_history** by default; **v1.31** — extended network/browsers and optional history CSV).
-
-| Future area | Description |
-|-------------|-------------|
-| **UX / automation** | Non-interactive mode (`--mode complete_without_ram`) and logging to a file. |
-| **Chain of custody** | Explicit documentation (e.g. signing the integrity listing or the session folder). |
-| **Native-only expansion** | New commands or artifacts beyond the **current operational table** (another `system_profiler`, browser engine or path, etc.); **v1.29–v1.31** is closed groundwork until new scope is defined. |
-| **History and network (+)** | Beyond what's already delivered (browsers in the table, **`evidence/network_*`**, optional CSV): other brands/engines, extra tabular data, deeper DNS or network logs; **TCC**/automation privileges over artifacts if applicable. |
-| **Physical RAM dump (external)** | Optional integration with an **open source** tool like **pmem / osxpmem** (macOS/CPU-compatible fork); **Homebrew** / **MacPorts** or manual **build**. Validate **Intel / Apple Silicon**, **SIP**, kext/extensions, disk space, output e.g. **AFF4**, and analysis with **Volatility 3**; evidence under `evidence/`. Menu **[2]** "with RAM" does **not** run a collection today; the native part is only `vm_stat` / `sysctl`. |
-
-**Scope note:** Flag and path decisions assume alignment with the **utilities shipped by current macOS versions** on **modern** machines (obsolete hardware or macOS is not explicitly supported).
-
----
-
 ## 🛠️ How to extend the script
 
 1. **Don't change the `RESULTS/` convention** without updating the README. With a session already created, use `forensic_cmd_to_file "evidence/my_command.txt" command args…` or `forensic_write_text` / `forensic_rsync_log`.
 2. For new table rows, edit `forensic_extraction_complete_without_ram` (and `forensic_extraction_volatile_ram_native` if applicable).
 3. The orchestration (**integrity check** at the end) lives in `forensic_execute_mode`; if you add slow phases, document time and disk space.
 4. If you add commands that can fail, do it inside the already-protected functions or use a subshell with `set +e` as in `forensic_execute_mode`.
-5. The rows in the [roadmap and future backlog](#-project-status-roadmap-and-future-backlog) describe **optional improvements**; the **v1.29–v1.31** deliverables aren't "half-done" just because they're listed there as future scope.
 
 ---
 
